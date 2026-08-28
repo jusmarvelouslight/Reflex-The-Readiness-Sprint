@@ -1,0 +1,541 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta
+    name="description"
+    content="Reflex Readiness Sprint delivery control room MVP"
+  >
+
+  <title>Reflex — Readiness Sprint</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap"
+    rel="stylesheet"
+  >
+
+  <link rel="stylesheet" href="./theme.css">
+
+  <script
+    defer
+    src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"
+  ></script>
+</head>
+
+<body>
+
+  <div x-data="reflexApp()" x-cloak class="app-shell">
+
+    <!-- Header -->
+    <header class="topbar">
+      <div class="topbar-inner">
+
+        <div class="brand-lockup">
+          <span class="brand-mark">R</span>
+
+          <div>
+            <p class="eyebrow">READINESS SPRINT</p>
+            <h1>Reflex</h1>
+          </div>
+        </div>
+
+        <div class="status-pill">
+          <span></span>
+          Operations online
+        </div>
+
+      </div>
+    </header>
+
+
+    <main class="shell">
+
+      <!-- Hero -->
+      <section class="hero">
+
+        <div>
+          <p class="eyebrow accent">
+            LAST-MILE CONTROL ROOM
+          </p>
+
+          <h2>
+            Every delivery,
+            <br>
+            <em>visible and moving.</em>
+          </h2>
+
+          <p class="hero-copy">
+            A focused operational view for Kenyan retailers to create
+            requests, assign riders, track progress and confirm delivery.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          class="primary-button"
+          @click="openCreate = true"
+        >
+          + New delivery request
+        </button>
+
+      </section>
+
+
+      <!-- Metrics -->
+      <section
+        class="metrics"
+        aria-label="Delivery metrics"
+      >
+
+        <article class="metric-card">
+          <span>Active requests</span>
+          <strong x-text="activeCount"></strong>
+          <small>Currently open</small>
+        </article>
+
+        <article class="metric-card">
+          <span>In transit</span>
+          <strong x-text="inTransitCount"></strong>
+          <small>On the road</small>
+        </article>
+
+        <article class="metric-card">
+          <span>Delivered</span>
+          <strong x-text="deliveredCount"></strong>
+          <small>Completed</small>
+        </article>
+
+        <article class="metric-card highlight">
+          <span>Service view</span>
+          <strong>Live</strong>
+          <small>Control room status</small>
+        </article>
+
+      </section>
+
+
+      <!-- Delivery Board -->
+      <section class="section-head">
+
+        <div>
+          <p class="eyebrow">DELIVERY BOARD</p>
+          <h3>Operational requests</h3>
+        </div>
+
+        <div
+          class="filters"
+          role="tablist"
+          aria-label="Delivery filters"
+        >
+
+          <button
+            type="button"
+            :class="{ active: filter === 'all' }"
+            @click="filter = 'all'"
+          >
+            All
+          </button>
+
+          <button
+            type="button"
+            :class="{ active: filter === 'active' }"
+            @click="filter = 'active'"
+          >
+            Active
+          </button>
+
+          <button
+            type="button"
+            :class="{ active: filter === 'delivered' }"
+            @click="filter = 'delivered'"
+          >
+            Delivered
+          </button>
+
+        </div>
+
+      </section>
+
+
+      <section class="board-card">
+
+        <div class="table-wrap">
+
+          <table>
+
+            <thead>
+              <tr>
+                <th>Request</th>
+                <th>Retailer</th>
+                <th>Rider</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+
+            <tbody>
+
+              <template
+                x-for="item in filtered"
+                :key="item.id"
+              >
+
+                <tr>
+
+                  <td>
+                    <strong x-text="item.id"></strong>
+                    <small x-text="item.destination"></small>
+                  </td>
+
+                  <td x-text="item.retailer"></td>
+
+                  <td x-text="item.rider || 'Unassigned'"></td>
+
+                  <td>
+                    <span
+                      class="status"
+                      :class="item.status.replace(' ', '-')"
+                      x-text="item.status"
+                    ></span>
+                  </td>
+
+                  <td>
+                    <button
+                      type="button"
+                      class="text-button"
+                      @click="openDetail(item)"
+                    >
+                      View / update →
+                    </button>
+                  </td>
+
+                </tr>
+
+              </template>
+
+
+              <tr x-show="filtered.length === 0">
+
+                <td
+                  colspan="5"
+                  class="empty-state"
+                >
+                  No deliveries match this view.
+                </td>
+
+              </tr>
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </section>
+
+
+      <!-- Operating Model -->
+      <section class="two-col">
+
+        <article class="panel">
+
+          <p class="eyebrow">
+            THE OPERATING MODEL
+          </p>
+
+          <h3>
+            One handoff. Four states.
+          </h3>
+
+          <div class="timeline">
+
+            <div>
+              <span>01</span>
+
+              <p>
+                <strong>Requested</strong>
+                Retailer logs the delivery.
+              </p>
+            </div>
+
+            <div>
+              <span>02</span>
+
+              <p>
+                <strong>Assigned</strong>
+                Dispatcher selects a rider.
+              </p>
+            </div>
+
+            <div>
+              <span>03</span>
+
+              <p>
+                <strong>In transit</strong>
+                Rider is actively delivering.
+              </p>
+            </div>
+
+            <div>
+              <span>04</span>
+
+              <p>
+                <strong>Delivered</strong>
+                Delivery is confirmed.
+              </p>
+            </div>
+
+          </div>
+
+        </article>
+
+
+        <article class="panel dark-panel">
+
+          <p class="eyebrow">
+            SPRINT PRINCIPLE
+          </p>
+
+          <blockquote>
+            “Keep the operational handoff clear.
+            Solve the next problem, not the entire logistics industry.”
+          </blockquote>
+
+          <p class="panel-note">
+            Reflex is intentionally narrow: a reliable control-room
+            workflow first, production infrastructure later.
+          </p>
+
+        </article>
+
+      </section>
+
+    </main>
+
+
+    <!-- Create Delivery Modal -->
+    <div
+      x-show="openCreate"
+      x-transition
+      class="modal"
+      @keydown.escape.window="openCreate = false"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Create delivery request"
+    >
+
+      <div
+        class="modal-card"
+        @click.outside="openCreate = false"
+      >
+
+        <button
+          type="button"
+          class="close-button"
+          aria-label="Close create delivery form"
+          @click="openCreate = false"
+        >
+          ×
+        </button>
+
+        <p class="eyebrow accent">
+          NEW REQUEST
+        </p>
+
+        <h3>Create delivery</h3>
+
+        <form @submit.prevent="create()">
+
+          <label>
+            Retailer
+
+            <input
+              type="text"
+              x-model.trim="form.retailer"
+              required
+              autocomplete="organization"
+              placeholder="e.g. Mara Market"
+            >
+          </label>
+
+
+          <label>
+            Destination
+
+            <input
+              type="text"
+              x-model.trim="form.destination"
+              required
+              autocomplete="street-address"
+              placeholder="e.g. Westlands, Nairobi"
+            >
+          </label>
+
+
+          <label>
+            Rider
+
+            <select x-model="form.rider">
+
+              <option value="Unassigned">
+                Unassigned
+              </option>
+
+              <option value="Amina K.">
+                Amina K.
+              </option>
+
+              <option value="Brian O.">
+                Brian O.
+              </option>
+
+              <option value="David M.">
+                David M.
+              </option>
+
+            </select>
+          </label>
+
+
+          <button
+            type="submit"
+            class="primary-button full"
+          >
+            Create request
+          </button>
+
+        </form>
+
+      </div>
+
+    </div>
+
+
+    <!-- Delivery Detail Modal -->
+    <div
+      x-show="detail"
+      x-transition
+      class="modal"
+      @keydown.escape.window="detail = null"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Delivery details"
+    >
+
+      <div
+        class="modal-card"
+        @click.outside="detail = null"
+      >
+
+        <button
+          type="button"
+          class="close-button"
+          aria-label="Close delivery details"
+          @click="detail = null"
+        >
+          ×
+        </button>
+
+        <p
+          class="eyebrow accent"
+          x-text="detail?.id"
+        ></p>
+
+        <h3 x-text="detail?.retailer"></h3>
+
+        <p
+          class="modal-destination"
+          x-text="detail?.destination"
+        ></p>
+
+
+        <div class="detail-grid">
+
+          <label>
+            Rider
+
+            <input
+              type="text"
+              x-model="detail.rider"
+              placeholder="Unassigned"
+            >
+          </label>
+
+
+          <label>
+            Delivery code
+
+            <input
+              type="text"
+              x-model="detail.code"
+              inputmode="numeric"
+              maxlength="6"
+              placeholder="Optional"
+            >
+          </label>
+
+        </div>
+
+
+        <div class="status-actions">
+
+          <button
+            type="button"
+            @click="updateStatus('requested')"
+            :class="{ selected: detail?.status === 'requested' }"
+          >
+            Requested
+          </button>
+
+          <button
+            type="button"
+            @click="updateStatus('assigned')"
+            :class="{ selected: detail?.status === 'assigned' }"
+          >
+            Assigned
+          </button>
+
+          <button
+            type="button"
+            @click="updateStatus('in transit')"
+            :class="{ selected: detail?.status === 'in transit' }"
+          >
+            In transit
+          </button>
+
+          <button
+            type="button"
+            @click="updateStatus('delivered')"
+            :class="{ selected: detail?.status === 'delivered' }"
+          >
+            Delivered
+          </button>
+
+        </div>
+
+
+        <button
+          type="button"
+          class="primary-button full"
+          @click="saveDetail()"
+        >
+          Save changes
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- Reflex application logic -->
+  <script type="module" src="./app.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,73 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  RETAILER
+  DISPATCHER
+  RIDER
+}
+
+enum DeliveryStatus {
+  PENDING
+  ASSIGNED
+  PICKED_UP
+  DELIVERED
+  CANCELLED
+}
+
+model User {
+  id                    String                  @id @default(uuid())
+  name                  String
+  email                 String                  @unique
+  phone                 String?
+  passwordHash          String
+  role                  Role
+  deliveriesCreated     Delivery[]              @relation("RetailerDeliveries")
+  deliveriesAssigned    Delivery[]              @relation("RiderDeliveries")
+  statusChanges         DeliveryStatusHistory[]
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+}
+
+model Delivery {
+  id                String                  @id @default(uuid())
+  customerName      String
+  customerPhone     String
+  deliveryAddress   String
+  itemDescription   String
+  status            DeliveryStatus          @default(PENDING)
+
+  retailerId        String
+  retailer          User                    @relation("RetailerDeliveries", fields: [retailerId], references: [id])
+
+  riderId           String?
+  rider             User?                   @relation("RiderDeliveries", fields: [riderId], references: [id])
+
+  assignedAt        DateTime?
+  pickedUpAt        DateTime?
+  deliveredAt       DateTime?
+
+  history           DeliveryStatusHistory[]
+
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
+}
+
+model DeliveryStatusHistory {
+  id             String           @id @default(uuid())
+
+  deliveryId     String
+  delivery       Delivery         @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+
+  status         DeliveryStatus
+
+  changedById    String
+  changedBy      User             @relation(fields: [changedById], references: [id])
+
+  createdAt      DateTime         @default(now())
+}

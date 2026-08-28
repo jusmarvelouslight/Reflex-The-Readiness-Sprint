@@ -1,0 +1,59 @@
+### 1. Variables Definition
+@baseUrl = http://localhost:5000/api/v1
+@password = password123
+
+### 2. Register a New Retailer
+# @name register
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "name": "Peter Rider",
+  "email": "retailer@reflex.testar",
+  "phone": "0733333333",
+  "password": "{{password}}",
+  "role": "RETAILER"
+}
+
+###
+
+### 3. Login to capture the JWT automatically
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "retailer@reflex.testar",
+  "password": "{{password}}"
+}
+
+### 4. Dynamically capture the Token from the login response
+@authToken = {{login.response.body.data.token}}
+
+###
+
+### 5. Create a Delivery (Retailer Only)
+# @name createDelivery
+POST {{baseUrl}}/deliveries
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "customerName": "John Doe",
+  "customerPhone": "0722222222",
+  "deliveryAddress": "Kilimani, Nairobi",
+  "itemDescription": "Document Package Box"
+}
+
+
+###
+
+### 6. List All Contextual Deliveries
+GET {{baseUrl}}/deliveries
+Authorization: Bearer {{authToken}}
+
+###
+
+### 7. Get the Single Delivery Details (The Fixed Route!)
+GET {{baseUrl}}/deliveries/{{createDelivery.response.body.data.delivery.id}}
+Authorization: Bearer {{authToken}}
