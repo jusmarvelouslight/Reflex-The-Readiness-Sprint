@@ -1,28 +1,27 @@
 import type { DeliveryStatus } from "../types/delivery";
 
 interface StatusBadgeProps {
-status: DeliveryStatus;
+  status: DeliveryStatus;
 }
 
 const statusLabels: Record<DeliveryStatus, string> = {
-REQUESTED: "Requested",
-ASSIGNED: "Assigned",
-IN_TRANSIT: "In transit",
-DELIVERED: "Delivered",
-FAILED: "Failed",
-CANCELLED: "Cancelled",
+  REQUESTED: "Requested",
+  ASSIGNED: "Assigned",
+  IN_TRANSIT: "In transit",
+  DELIVERED: "Delivered",
+  FAILED: "Failed",
+  CANCELLED: "Cancelled",
 };
 
 function StatusBadge({ status }: StatusBadgeProps) {
-return (
-<span
-className={`status-badge status-${status.toLowerCase()}`}
-> <span className="status-dot" />
-{statusLabels[status]} </span>
-);
+  return (
+    <span
+      className={`status-badge status-${status.toLowerCase()}`}
+    >
+      <span className="status-dot" aria-hidden="true" />
+      <span>{statusLabels[status]}</span>
+    </span>
+  );
 }
 
 export default StatusBadge;
-
-```
-```
