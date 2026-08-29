@@ -1,4 +1,4 @@
-```tsx
+
 interface TopbarProps {
   title?: string;
   subtitle?: string;
@@ -35,4 +35,4 @@ function Topbar({
 }
 
 export default Topbar;
-```
+

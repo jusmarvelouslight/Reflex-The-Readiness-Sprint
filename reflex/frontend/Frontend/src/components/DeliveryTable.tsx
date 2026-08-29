@@ -1,4 +1,4 @@
-```tsx
+
 import StatusBadge from "./StatusBadge";
 import type { DeliveryStatus } from "../types/delivery";
 
@@ -75,4 +75,4 @@ function DeliveryTable({ deliveries }: DeliveryTableProps) {
 }
 
 export default DeliveryTable;
-```
+

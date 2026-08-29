@@ -1,4 +1,4 @@
-```tsx
+
 const riders = [
   {
     name: "Kevin Mwangi",
@@ -75,4 +75,4 @@ function Riders() {
 }
 
 export default Riders;
-```
+

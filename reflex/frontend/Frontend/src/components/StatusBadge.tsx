@@ -1,4 +1,4 @@
-```tsx
+
 import type { DeliveryStatus } from "../types/delivery";
 
 interface StatusBadgeProps {
@@ -24,4 +24,4 @@ function StatusBadge({ status }: StatusBadgeProps) {
 }
 
 export default StatusBadge;
-```
+

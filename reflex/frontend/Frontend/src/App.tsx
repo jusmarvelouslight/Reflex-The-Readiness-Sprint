@@ -1,70 +1,89 @@
-```tsx
 import { useState } from "react";
 import Dashboard from "./pages/Dashboard";
 import Deliveries from "./pages/Deliveries";
 import Riders from "./pages/Riders";
-import Sidebar from "./components/Sidebar";
-import Topbar from "./components/Topbar";
+import MyDeliveries from "./pages/MyDeliveries";
 
-type Screen = "dashboard" | "deliveries" | "riders";
+type Screen = "dashboard" | "deliveries" | "riders" | "myDeliveries";
 
 function App() {
   const [screen, setScreen] = useState<Screen>("dashboard");
 
-  const renderScreen = () => {
-    switch (screen) {
-      case "deliveries":
-        return <Deliveries />;
-
-      case "riders":
-        return <Riders />;
-
-      case "dashboard":
-      default:
-        return <Dashboard />;
-    }
-  };
-
-  const getPageTitle = () => {
-    switch (screen) {
-      case "deliveries":
-        return {
-          title: "Deliveries",
-          subtitle: "Monitor and manage delivery activity",
-        };
-
-      case "riders":
-        return {
-          title: "Riders",
-          subtitle: "Review rider availability and assignments",
-        };
-
-      case "dashboard":
-      default:
-        return {
-          title: "Reflex Control Room",
-          subtitle: "Last-mile delivery operations",
-        };
-    }
-  };
-
-  const page = getPageTitle();
-
   return (
     <div className="app-shell">
-      <Sidebar
-        activeScreen={screen}
-        onNavigate={setScreen}
-      />
+      <aside className="sidebar">
+        <div className="brand">
+          <div className="brand-mark">R</div>
+
+          <div className="brand-copy">
+            <strong>Reflex</strong>
+            <span>Control Room</span>
+          </div>
+        </div>
+
+        <nav className="nav" aria-label="Main navigation">
+          <button
+            className={`nav-link ${
+              screen === "dashboard" ? "active" : ""
+            }`}
+            onClick={() => setScreen("dashboard")}
+          >
+            Dashboard
+          </button>
+
+          <button
+            className={`nav-link ${
+              screen === "deliveries" ? "active" : ""
+            }`}
+            onClick={() => setScreen("deliveries")}
+          >
+            Deliveries
+          </button>
+
+          <button
+            className={`nav-link ${
+              screen === "riders" ? "active" : ""
+            }`}
+            onClick={() => setScreen("riders")}
+          >
+            Riders
+          </button>
+
+          <button
+            className={`nav-link ${
+              screen === "myDeliveries" ? "active" : ""
+            }`}
+            onClick={() => setScreen("myDeliveries")}
+          >
+            My Deliveries
+          </button>
+        </nav>
+
+        <div className="sidebar-footer">
+          <div className="system-status">
+            <span className="status-dot" />
+            System operational
+          </div>
+        </div>
+      </aside>
 
       <main className="main-content">
-        <Topbar
-          title={page.title}
-          subtitle={page.subtitle}
-        />
+        <header className="topbar">
+          <div className="page-heading">
+            <h1>Reflex Control Room</h1>
+            <p>Last-mile delivery operations</p>
+          </div>
+
+          <div className="topbar-actions">
+            <span>Frontend / UX</span>
+          </div>
+        </header>
 
         <section className="page-content">
-          {renderScreen()}
+          {screen === "dashboard" && <Dashboard />}
+          {screen === "deliveries" && <Deliveries />}
+          {screen === "riders" && <Riders />}
+          {screen === "myDeliveries" && <MyDeliveries />}
         </section>
       </main>
     </div>
@@ -72,4 +91,3 @@ function App() {
 }
 
 export default App;
-```

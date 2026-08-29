@@ -1,4 +1,4 @@
-```tsx
+
 type Screen = "dashboard" | "deliveries" | "riders";
 
 interface SidebarProps {
@@ -88,4 +88,4 @@ function Sidebar({
 }
 
 export default Sidebar;
-```
+

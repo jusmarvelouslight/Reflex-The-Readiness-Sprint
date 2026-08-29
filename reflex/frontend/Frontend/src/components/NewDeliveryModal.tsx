@@ -1,4 +1,4 @@
-```tsx
+
 import { FormEvent, useState } from "react";
 
 interface NewDeliveryModalProps {
@@ -162,4 +162,4 @@ function NewDeliveryModal({
 }
 
 export default NewDeliveryModal;
-```
+

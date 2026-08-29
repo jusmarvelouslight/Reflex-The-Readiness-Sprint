@@ -1,4 +1,4 @@
-```tsx
+
 interface MetricCardProps {
   label: string;
   value: string | number;
@@ -22,4 +22,4 @@ function MetricCard({
 }
 
 export default MetricCard;
-```
+

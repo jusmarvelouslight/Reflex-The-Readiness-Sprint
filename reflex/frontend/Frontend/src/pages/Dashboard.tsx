@@ -1,4 +1,4 @@
-```tsx
+
 import MetricCard from "../components/MetricCard";
 import StatusBadge from "../components/StatusBadge";
 
@@ -135,4 +135,4 @@ function Dashboard() {
 }
 
 export default Dashboard;
-```
+
