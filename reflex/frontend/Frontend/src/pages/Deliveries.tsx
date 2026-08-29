@@ -1,4 +1,4 @@
-
+```tsx
 import { useMemo, useState } from "react";
 import DeliveryTable from "../components/DeliveryTable";
 import type { DeliveryStatus } from "../types/delivery";
@@ -47,10 +47,12 @@ function Deliveries() {
 
   const filteredDeliveries = useMemo(() => {
     return mockDeliveries.filter((delivery) => {
+      const query = search.toLowerCase();
+
       const matchesSearch =
-        delivery.id.toLowerCase().includes(search.toLowerCase()) ||
-        delivery.customerName.toLowerCase().includes(search.toLowerCase()) ||
-        delivery.address.toLowerCase().includes(search.toLowerCase());
+        delivery.id.toLowerCase().includes(query) ||
+        delivery.customerName.toLowerCase().includes(query) ||
+        delivery.address.toLowerCase().includes(query);
 
       const matchesStatus =
         statusFilter === "ALL" || delivery.status === statusFilter;
@@ -59,24 +61,86 @@ function Deliveries() {
     });
   }, [search, statusFilter]);
 
+  const activeCount = mockDeliveries.filter(
+    (delivery) =>
+      delivery.status === "REQUESTED" ||
+      delivery.status === "ASSIGNED" ||
+      delivery.status === "IN_TRANSIT"
+  ).length;
+
   return (
     <div className="deliveries-page">
       <div className="page-intro">
         <div>
           <p className="eyebrow">Delivery management</p>
           <h2>Deliveries</h2>
-          <p>Monitor, filter and manage current delivery activity.</p>
+          <p>
+            Monitor, filter and manage current delivery activity.
+          </p>
         </div>
 
-        <button type="button" className="primary-button">
-          + New delivery
+        <button type="button" className="btn btn-primary">
+          <span>+</span>
+          New delivery
         </button>
       </div>
 
+      <div className="mini-stats">
+        <div className="mini-stat">
+          <span>Total</span>
+          <strong>{mockDeliveries.length}</strong>
+        </div>
+
+        <div className="mini-stat">
+          <span>Active</span>
+          <strong>{activeCount}</strong>
+        </div>
+
+        <div className="mini-stat">
+          <span>Delivered</span>
+          <strong>
+            {
+              mockDeliveries.filter(
+                (delivery) => delivery.status === "DELIVERED"
+              ).length
+            }
+          </strong>
+        </div>
+
+        <div className="mini-stat warning">
+          <span>Needs attention</span>
+          <strong>
+            {
+              mockDeliveries.filter(
+                (delivery) => delivery.status === "FAILED"
+              ).length
+            }
+          </strong>
+        </div>
+      </div>
+
       <section className="panel">
+        <div className="panel-header">
+          <div>
+            <p className="eyebrow">Live register</p>
+            <h3>All deliveries</h3>
+            <p className="panel-subtitle">
+              {filteredDeliveries.length} deliveries matching your view.
+            </p>
+          </div>
+
+          <span className="live-indicator">
+            <span className="status-dot" />
+            Monitoring
+          </span>
+        </div>
+
         <div className="filters">
           <label className="search-field">
             <span className="sr-only">Search deliveries</span>
+
+            <span className="search-icon">⌕</span>
+
             <input
               type="search"
               placeholder="Search delivery, customer or location..."
@@ -85,8 +149,9 @@ function Deliveries() {
             />
           </label>
 
-          <label>
-            <span className="sr-only">Filter by status</span>
+          <label className="filter-control">
+            <span>Status</span>
+
             <select
               value={statusFilter}
               onChange={(event) => setStatusFilter(event.target.value)}
@@ -109,4 +174,4 @@ function Deliveries() {
 }
 
 export default Deliveries;
-
+```
