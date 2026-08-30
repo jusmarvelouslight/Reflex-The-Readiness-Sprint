@@ -1,4 +1,7 @@
 Testing,Q&A, Security & Defense Preparation(Reflex)
+1. Functional testing
+Goal: Prove the core flow works end-to-end for all three roles.
+
 | Test ID | Test Case | Expected Result | Status |
 | :--- | :--- | :--- | :---: |
 | **F1** | **Create delivery (retailer)** | New delivery appears in “Open requests” with status `OPEN`; all required fields saved. | ✓ |
