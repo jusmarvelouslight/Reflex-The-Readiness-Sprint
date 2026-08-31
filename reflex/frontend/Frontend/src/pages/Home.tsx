@@ -1,4 +1,4 @@
-```tsx
+
 interface HomeProps {
   onNavigate: (
     screen: "dashboard" | "deliveries" | "riders" | "my-deliveries"
@@ -212,4 +212,4 @@ function Home({ onNavigate }: HomeProps) {
 }
 
 export default Home;
-```
+

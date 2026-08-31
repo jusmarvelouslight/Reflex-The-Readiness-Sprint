@@ -1,4 +1,4 @@
-```tsx
+
 import { useMemo, useState } from "react";
 import DeliveryTable from "../components/DeliveryTable";
 import type { DeliveryStatus } from "../types/delivery";
@@ -174,4 +174,4 @@ function Deliveries() {
 }
 
 export default Deliveries;
-```
+

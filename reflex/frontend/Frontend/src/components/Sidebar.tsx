@@ -1,8 +1,9 @@
-```tsx
 type Screen =
   | "dashboard"
   | "deliveries"
-  | "riders";
+  | "riders"
+  | "my-deliveries"
+  | "home";
 
 interface SidebarProps {
   activeScreen: Screen;
@@ -37,15 +38,18 @@ function Sidebar({
       icon: "◉",
       description: "Monitor your fleet",
     },
+    {
+      id: "my-deliveries",
+      label: "My Deliveries",
+      icon: "🚴",
+      description: "Rider assignments",
+    },
   ];
 
   return (
     <aside className="sidebar">
       <div className="brand">
-        <div
-          className="brand-mark"
-          aria-hidden="true"
-        >
+        <div className="brand-mark" aria-hidden="true">
           R
         </div>
 
@@ -57,36 +61,22 @@ function Sidebar({
 
       <div className="sidebar-divider" />
 
-      <nav
-        className="nav"
-        aria-label="Main navigation"
-      >
-        <span className="nav-heading">
-          Workspace
-        </span>
+      <nav className="nav" aria-label="Main navigation">
+        <span className="nav-heading">Workspace</span>
 
         {navigationItems.map((item) => (
           <button
             key={item.id}
             type="button"
             className={`nav-link ${
-              activeScreen === item.id
-                ? "active"
-                : ""
+              activeScreen === item.id ? "active" : ""
             }`}
-            onClick={() =>
-              onNavigate(item.id)
-            }
+            onClick={() => onNavigate(item.id)}
             aria-current={
-              activeScreen === item.id
-                ? "page"
-                : undefined
+              activeScreen === item.id ? "page" : undefined
             }
           >
-            <span
-              className="nav-icon"
-              aria-hidden="true"
-            >
+            <span className="nav-icon" aria-hidden="true">
               {item.icon}
             </span>
 
@@ -108,10 +98,7 @@ function Sidebar({
       <div className="sidebar-bottom">
         <div className="sidebar-status-card">
           <div className="system-status">
-            <span
-              className="status-dot"
-              aria-hidden="true"
-            />
+            <span className="status-dot" aria-hidden="true" />
 
             <div>
               <strong>System operational</strong>
@@ -130,4 +117,3 @@ function Sidebar({
 }
 
 export default Sidebar;
-```

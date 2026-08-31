@@ -1,4 +1,4 @@
-```tsx
+
 import { useState, useEffect } from "react";
 
 const API_BASE = "http://localhost:5000/api/v1";
@@ -416,4 +416,4 @@ function MyDeliveries() {
 }
 
 export default MyDeliveries;
-```
+

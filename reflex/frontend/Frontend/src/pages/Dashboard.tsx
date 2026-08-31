@@ -1,4 +1,4 @@
-```tsx
+
 const metrics = [
   {
     label: "Total deliveries",
@@ -247,4 +247,4 @@ function Dashboard() {
 }
 
 export default Dashboard;
-```
+
