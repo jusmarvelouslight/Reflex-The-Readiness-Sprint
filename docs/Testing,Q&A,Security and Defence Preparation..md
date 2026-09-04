@@ -18,7 +18,7 @@ Goal: Prove the core flow works end-to-end for all three roles.
 
 | # | Case | Steps | Expected result | Status |
 |---|---|---|---|---|
-| E1 | Two dispatchers assign the same delivery | Dispatcher A and B open the same OPEN delivery; both click “Assign” at nearly the same time (to different riders). | Only one assignment succeeds; the other fails with a clear error; delivery has exactly one rider. | ✓ / ✗ |
+| E1 | Two dispatchers assign the same delivery | Dispatcher A and B open the same OPEN delivery; both click “Assign” at nearly the same time (to different riders). | Only one assignment succeeds; the other fails with a clear error; delivery has exactly one rider. | ✓  |
 | E2 | Two riders attempt to update the same delivery | Rider A and B both assigned (incorrectly) to same delivery; both try to mark PICKED_UP. | Only the legitimate rider’s update succeeds; other is rejected with authorization error. | ✓ / ✗ |
 | E3 | Rider tries invalid transition: DELIVERED → PICKED_UP | Rider opens a DELIVERED delivery and attempts to set status back to PICKED_UP. | Request rejected; status remains DELIVERED; error shown to user. | ✓ / ✗ |
 | E4 | Unauthorised user accesses another role’s functionality | Logged-in rider tries to call dispatcher-only API (e.g., assign delivery) or view all open requests. | Access denied (403); no data returned; action not performed. | ✓ / ✗ |
@@ -157,4 +157,19 @@ Trade-offs
 * **Evidence:** In our test, an un-updated delivery remained “ASSIGNED” indefinitely.
 
 ---
+Candor
 
+#### Q: What haven’t you tested?
+* **State:** We haven’t load-tested with hundreds of concurrent riders.
+* **Context:** Our focus was functional correctness and basic concurrency.
+* **Evidence:** Our largest test was ~10 concurrent users; anything beyond that is unmeasured.
+
+#### Q: What assumption are you making?
+* **State:** We assume riders will reliably update status at pickup and delivery.
+* **Context:** Our flow depends on rider discipline for accurate tracking.
+* **Evidence:** We don’t yet enforce geofencing or automatic detection of pickup/drop-off.
+
+#### Q: What part of the architecture are you least confident about?
+* **State:** We are least confident about our long-term concurrency handling under heavy load.
+* **Context:** We have basic transactions, but haven’t stress-tested edge cases at scale.
+* **Evidence:** We saw occasional deadlocks in early tests when hammering the assign endpoint.
