@@ -129,3 +129,32 @@ Trade-offs
 * **Evidence:** We prototyped a local queue idea but didn’t implement conflict merging yet.
 
 ---
+ Edge Cases
+
+#### Q: What happens when the network goes down?
+* **State:** In-flight requests fail; the UI shows an error and the user can retry.
+* **Context:** We’re currently online-first; we don’t persist mutations locally yet.
+* **Evidence:** In our airplane-mode test, the status update failed and showed “Network error – try again”.
+
+#### Q: What if two dispatchers assign simultaneously?
+* **State:** Only one assignment succeeds; the other fails.
+* **Context:** We use a DB transaction and status check to ensure a delivery is assigned once.
+* **Evidence:** In our test, one dispatcher got success, the other got a 409 “Delivery already assigned”.
+
+#### Q: What if a rider changes the wrong delivery?
+* **State:** They can’t, because we enforce ownership at the API level.
+* **Context:** Each status update checks that the delivery is assigned to that rider.
+* **Evidence:** When Rider A tried to update Rider B’s delivery, the API returned 403.
+
+#### Q: What if the database goes down?
+* **State:** The app becomes unavailable; we don’t have a replica yet.
+* **Context:** This is a known limitation of our current setup.
+* **Evidence:** In our test where we stopped the DB container, all API calls returned 500.
+
+#### Q: What if the rider doesn’t update the delivery?
+* **State:** The delivery stays in its last known status; the retailer sees it as stuck.
+* **Context:** We don’t yet have automatic timeouts or escalation rules.
+* **Evidence:** In our test, an un-updated delivery remained “ASSIGNED” indefinitely.
+
+---
+
