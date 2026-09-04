@@ -105,3 +105,27 @@ Use **State → Context → Evidence** for each answer.
 * **Context:** The team is strongest in JavaScript/TypeScript; this reduces context switching and speeds iteration.
 * **Evidence:** Our API and frontend both use TypeScript, sharing types for requests/responses.
 
+---
+Trade-offs
+
+#### Q: What’s the weakest part of your design?
+* **State:** Our weakest part is the online-first assumption with limited offline support.
+* **Context:** Riders in areas with poor connectivity may struggle to update status reliably.
+* **Evidence:** In our network-drop test, status updates failed until reconnection; we show an error but don’t yet queue writes.
+
+#### Q: What did you deliberately leave out?
+* **State:** We deliberately left out photo/signature proof of delivery.
+* **Context:** That adds storage, privacy, and UI complexity we didn’t need for the core flow.
+* **Evidence:** Our `delivery_events` table stores only timestamp and optional GPS, not images.
+
+#### Q: What won’t scale?
+* **State:** Manual assignment by a single dispatcher won’t scale to many retailers and riders.
+* **Context:** As volume grows, a human can’t optimally assign every delivery.
+* **Evidence:** In our test with 50 open deliveries, assignment time increased noticeably.
+
+#### Q: What would you change with more time?
+* **State:** With more time, we’d add offline-first sync with a local queue and conflict resolution.
+* **Context:** That would make the app robust in low-connectivity environments.
+* **Evidence:** We prototyped a local queue idea but didn’t implement conflict merging yet.
+
+---
