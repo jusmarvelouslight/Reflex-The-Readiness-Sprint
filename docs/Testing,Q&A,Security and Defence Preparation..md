@@ -80,13 +80,14 @@ All endpoints validate:
 
 ---
 4. Trade-Off Log
+   
 Maintain this as a one-pager you can hand to the panel.
 
 | # | Trade-off | Weakness | Why we accepted it | Impact | What we’d do differently |
 |---|---|---|---|---|---|
 | T1 | Manual rider assignment (dispatcher picks rider by hand) | Doesn’t scale; relies on human judgment; no auto load-balancing. | Fastest to implement; lets us validate core flow before adding optimization. | Dispatcher bottleneck; possible uneven workload across riders. | Add auto-assignment based on proximity, load, and availability; introduce rules engine. |
 | T2 | Online-first rather than fully offline | Riders with spotty connectivity may experience failed updates or delays. | Full offline sync (queues, conflict resolution) is complex; we prioritized core online flow. | Occasional failed status updates in poor-network areas; UX friction. | Implement local queue + retry logic; conflict resolution strategy; clearer offline indicators. |
-| T3 | PostgreSQL as primary source of truth (instead of Firebase/Mongo) | More ops overhead; need to manage DB, migrations, connections. | Team familiarity; strong relational model fits deliveries/assignments; better for complex queries later. | Slower to set up; more moving parts than a managed NoDB. | Add connection pooling, read replicas, and monitoring; consider managed Postgres (e.g., RDS/Neon). |
+| T3 | PostgreSQL as primary source of truth (instead of Firebase 0r Mongo) | More ops overhead; need to manage DB, migrations, connections. | Team familiarity; strong relational model fits deliveries/assignments; better for complex queries later. | Slower to set up; more moving parts than a managed NoDB. | Add connection pooling, read replicas, and monitoring; consider managed Postgres (e.g., RDS/Neon). |
 | T4 | Basic proof of delivery (timestamp + status) rather than full photo/signature | Easier to dispute; less robust evidence in case of fraud. | Photo/signature infrastructure adds storage, UI, and privacy complexity. | Higher risk of “they say they delivered, customer says no” disputes. | Add optional photo upload + GPS + signature capture; store securely with access controls. |
 
 ---
