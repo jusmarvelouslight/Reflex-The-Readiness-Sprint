@@ -1,4 +1,4 @@
-```typescript
+
 export class ApiError extends Error {
   status: number;
   code?: string;
@@ -47,4 +47,4 @@ export function getUserFriendlyError(error: unknown): string {
 
   return "Something went wrong. Please try again.";
 }
-```
+

@@ -45,7 +45,7 @@ function DeliveryDetails({
             onClick={onClose}
             aria-label="Close delivery details"
           >
-            ×
+            
           </button>
         )}
       </div>

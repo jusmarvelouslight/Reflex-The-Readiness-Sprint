@@ -1,4 +1,5 @@
-
+import { useState } from "react";
+import { assignRider as assignRiderApi } from "../api/deliveriesApi";
 const metrics = [
   {
     label: "Total deliveries",
@@ -72,7 +73,75 @@ const attentionItems = [
   },
 ];
 
+const availableRiders = [
+  {
+    id: "ab71c348-c2f1-4f37-9c70-5aa491c5607f",
+    name: "Bob Rider",
+    area: "Kilimani",
+  },
+  {
+    id: "c5298d30-358d-4496-b23d-ba8ec47da380",
+    name: "Test Rider",
+    area: "Lavington",
+  },
+];
+
+const openRequests = [
+  {
+   id: "638854ab-8df7-421f-be4e-4dce3e6a455c", 
+    address: "Karen",
+    status: "REQUESTED",
+    items: ["1 Parcel"],
+rider: null as { id: string; name: string; area: string } | null, 
+ },
+  {
+    id: "fd798068-91d7-4c15-bdca-f7cb4d5d7bc2",
+    address: "Kasarani",
+    status: "REQUESTED",
+    items: ["2 Parcels"],
+    rider: null as { id: string; name: string; area: string } | null,
+  },
+];
+
 function Dashboard() {
+  const [selectedDelivery, setSelectedDelivery] = useState(openRequests[0]);
+  const [selectedRider, setSelectedRider] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+
+  const token = localStorage.getItem("token");
+
+  const assignRider = async () => {
+  if (!selectedRider || !selectedDelivery) return;
+
+  setIsSaving(true);
+
+  try {
+  const token = localStorage.getItem("token");
+
+await assignRiderApi(
+  selectedDelivery.id,
+  { riderId: selectedRider },
+  token || undefined
+);
+
+    const rider = availableRiders.find((r) => r.id === selectedRider);
+
+    if (rider) {
+     setSelectedDelivery({
+    ...selectedDelivery,
+  rider,
+}); 
+    }
+
+    setSelectedRider("");
+  } catch (error) {
+    console.error("Failed to assign rider:", error);
+    alert("Failed to assign rider. Please try again.");
+  } finally {
+    setIsSaving(false);
+  }
+};
+
   return (
     <div className="dashboard-page">
       <div className="page-intro">
@@ -205,7 +274,91 @@ function Dashboard() {
             All core services operating normally
           </div>
         </section>
-      </div>
+            </div>
+
+      <section className="panel dispatch-action-panel">
+        <div className="panel-header">
+          <div>
+            <p className="eyebrow">Assignment action</p>
+            <h3>
+              {selectedDelivery ? selectedDelivery.id : "Select a delivery"}
+            </h3>
+            <p className="panel-subtitle">
+              Choose an available rider to take ownership.
+            </p>
+          </div>
+
+          <span className="dispatch-action-icon">
+            🚚
+          </span>
+        </div>
+
+        {selectedDelivery && (
+          <div className="dispatch-action-content">
+            <div className="dispatch-detail-card">
+              <div>
+                <span>Destination</span>
+                <strong>{selectedDelivery.address}</strong>
+              </div>
+
+              <div>
+                <span>Current status</span>
+                <strong>
+                  {selectedDelivery.status.replace("_", " ")}
+                </strong>
+              </div>
+
+              <div>
+                <span>Items</span>
+                <strong>{selectedDelivery.items.length}</strong>
+              </div>
+            </div>
+
+            {selectedDelivery.rider ? (
+              <div className="assigned-callout">
+                <span>
+                  ✓
+                </span>
+
+                <span>
+                  <strong>Rider assigned</strong>
+                  <small>
+                    {selectedDelivery.rider.name} is on this delivery.
+                  </small>
+                </span>
+              </div>
+            ) : (
+              <>
+                <label className="dispatch-select-field">
+                  <span>Available rider</span>
+
+                  <select
+                    value={selectedRider}
+                    onChange={(e) => setSelectedRider(e.target.value)}
+                  >
+                    <option value="">Choose a rider</option>
+
+                    {availableRiders.map((rider) => (
+                      <option key={rider.id} value={rider.id}>
+                        {rider.name} · {rider.area}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <button
+                  className="primary-button dispatch-assign-button"
+                  type="button"
+                  disabled={!selectedRider || isSaving}
+                  onClick={assignRider}
+                >
+                  {isSaving ? "Saving assignment..." : "Assign rider"}
+                </button>
+              </>
+            )}
+          </div>
+        )}
+      </section>
 
       <section className="panel attention-panel">
         <div className="panel-header">

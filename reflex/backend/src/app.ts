@@ -14,8 +14,7 @@ const app = express();
 // 1. Global Pre-routing Middleware
 app.use(helmet()); 
 app.use( 
-  cors({ origin: process.env.FRONTEND_URL || 'https://reflex-control-room-ui--iamher26.replit.app' }) 
-); 
+cors({ origin: "http://localhost:5177" })); 
 app.use(express.json()); // <--- MOVED HERE: Now runs before all routes
 
 // 2. Feature Routes

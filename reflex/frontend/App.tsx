@@ -1,4 +1,4 @@
-```tsx
+
 import { useState } from "react";
 import Dashboard from "./pages/Dashboard";
 import Deliveries from "./pages/Deliveries";
@@ -81,4 +81,4 @@ function App() {
 }
 
 export default App;
-```
+

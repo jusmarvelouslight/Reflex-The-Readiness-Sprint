@@ -1,4 +1,4 @@
-```typescript
+
 import apiClient from "./apiClient";
 import type {
   AssignRiderRequest,
@@ -72,4 +72,4 @@ export async function confirmDelivery(
     },
   );
 }
-```
+

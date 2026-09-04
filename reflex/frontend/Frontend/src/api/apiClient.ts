@@ -1,4 +1,4 @@
-```typescript
+
 import API_BASE_URL from "../config/api";
 import { ApiError } from "./errors";
 
@@ -52,4 +52,4 @@ async function apiClient<T>(
 }
 
 export default apiClient;
-```
+

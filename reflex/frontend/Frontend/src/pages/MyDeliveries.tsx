@@ -1,7 +1,8 @@
-
 import { useState, useEffect } from "react";
+import { io, Socket } from "socket.io-client";
 
 const API_BASE = "http://localhost:5000/api/v1";
+const SOCKET_URL = "http://localhost:5000";
 
 interface Delivery {
   id: string;
@@ -22,6 +23,7 @@ interface Delivery {
 }
 
 function MyDeliveries() {
+    console.log("MyDeliveries component rendered");
   const [token, setToken] = useState<string | null>(
     localStorage.getItem("riderToken")
   );
@@ -33,6 +35,7 @@ function MyDeliveries() {
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [socket, setSocket] = useState<Socket | null>(null);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -110,6 +113,31 @@ function MyDeliveries() {
 
   useEffect(() => {
     fetchDeliveries();
+  }, [token]);
+
+  useEffect(() => {
+    if (!token) return;
+
+    const newSocket = io(SOCKET_URL);
+
+    newSocket.on("connect", () => {
+      console.log("Socket connected:", newSocket.id);
+
+      // Extract the rider's userId from the JWT token to join their room
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      newSocket.emit("join", payload.userId);
+    });
+
+    newSocket.on("delivery:updated", () => {
+      // A delivery changed (assigned, picked up, delivered) - refresh the list
+      fetchDeliveries();
+    });
+
+    setSocket(newSocket);
+
+    return () => {
+      newSocket.disconnect();
+    };
   }, [token]);
 
   async function advanceStatus(
@@ -259,7 +287,7 @@ function MyDeliveries() {
 
         <div className="rider-online">
           <span className="status-dot" />
-          Online
+          {socket?.connected ? "Live" : "Online"}
         </div>
       </div>
 
@@ -416,4 +444,3 @@ function MyDeliveries() {
 }
 
 export default MyDeliveries;
-

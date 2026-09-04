@@ -1,3 +1,4 @@
+import { io } from "../server.js";
 import { prisma } from "../config/database.js";
 
 interface CreateDeliveryInput {
@@ -184,8 +185,8 @@ export async function assignDelivery(
     throw new Error("DELIVERY_NOT_ASSIGNABLE");
   }
 
-  return prisma.$transaction(async (tx) => {
-    const updatedDelivery = await tx.delivery.update({
+  const updatedDelivery = await prisma.$transaction(async (tx) => {
+    const result = await tx.delivery.update({
       where: {
         id: deliveryId
       },
@@ -204,8 +205,16 @@ export async function assignDelivery(
       }
     });
 
-    return updatedDelivery;
+    return result;
   });
+
+  // Notify the assigned rider in real-time
+  io.to(riderId).emit("delivery:updated", updatedDelivery);
+
+  // Notify the retailer too, since their delivery status changed
+  io.to(updatedDelivery.retailerId).emit("delivery:updated", updatedDelivery);
+
+  return updatedDelivery;
 }
 
 export async function updateDeliveryStatus(
@@ -256,8 +265,8 @@ export async function updateDeliveryStatus(
     data.deliveredAt = timestamp;
   }
 
-  return prisma.$transaction(async (tx) => {
-    const updatedDelivery = await tx.delivery.update({
+  const updatedDelivery = await prisma.$transaction(async (tx) => {
+    const result = await tx.delivery.update({
       where: {
         id: deliveryId
       },
@@ -272,6 +281,12 @@ export async function updateDeliveryStatus(
       }
     });
 
-    return updatedDelivery;
+    return result;
   });
+
+  // Notify the rider and the retailer/dispatcher watching this delivery
+  io.to(riderId).emit("delivery:updated", updatedDelivery);
+  io.to(updatedDelivery.retailerId).emit("delivery:updated", updatedDelivery);
+
+  return updatedDelivery;
 }

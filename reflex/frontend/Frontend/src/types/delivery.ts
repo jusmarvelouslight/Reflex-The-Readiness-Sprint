@@ -1,4 +1,4 @@
-```typescript
+
 export type DeliveryStatus =
   | "REQUESTED"
   | "ASSIGNED"
@@ -56,4 +56,4 @@ export interface ApiErrorResponse {
   code?: string;
   status?: number;
 }
-```
+
