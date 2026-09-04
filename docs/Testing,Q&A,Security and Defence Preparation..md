@@ -90,4 +90,18 @@ Maintain this as a one-pager you can hand to the panel.
 | T4 | Basic proof of delivery (timestamp + status) rather than full photo/signature | Easier to dispute; less robust evidence in case of fraud. | Photo/signature infrastructure adds storage, UI, and privacy complexity. | Higher risk of “they say they delivered, customer says no” disputes. | Add optional photo upload + GPS + signature capture; store securely with access controls. |
 
 ---
+5. Cross-Examination Preparation (Question Bank)
+Use **State → Context → Evidence** for each answer.
+
+### Architecture
+
+#### Q: Why PostgreSQL?
+* **State:** We chose PostgreSQL as our source of truth because our data is highly relational and we need strong consistency.
+* **Context:** Deliveries, assignments, and events have clear relationships and constraints; SQL gives us schema enforcement and powerful queries.
+* **Evidence:** Our schema enforces foreign keys between deliveries, assignments, and events, preventing orphaned records.
+
+#### Q: Why Node.js?
+* **State:** Node.js lets us share language and patterns between frontend and backend.
+* **Context:** The team is strongest in JavaScript/TypeScript; this reduces context switching and speeds iteration.
+* **Evidence:** Our API and frontend both use TypeScript, sharing types for requests/responses.
 
