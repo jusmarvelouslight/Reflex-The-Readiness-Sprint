@@ -28,4 +28,55 @@ Goal: Prove the core flow works end-to-end for all three roles.
 | E8 | Required customer information is missing | Retailer tries to create delivery with missing phone or address. | Form validation blocks submit; clear error messages; no incomplete records created. | ✓ / ✗ |
 
 ---
+3. Security
+**Goal:** Show you’ve thought about auth, authorization, and data protection.
+
+### 3.1 Authentication & Password Handling
+* **Auth mechanism:** e.g., email/password via Node + JWT.
+* **Password hashing:** Passwords never stored in plaintext;
+* **Session management:** Tokens expire; refresh strategy defined; logout invalidates tokens.
+
+#### Tests:
+* **S1:** Attempt login with wrong password → login fails, no info leakage about whether email exists.
+* **S2:** Inspect stored passwords in DB → confirm only hashes stored.
+* **S3:** Use an expired JWT on an API → server returns 401; client redirects to login.
+
+### 3.2 Role-Based Authorization
+* **Roles:** Retailer, Dispatcher, Rider.
+* Each role has a defined permission matrix (who can create, assign, update, view).
+
+#### Tests:
+* **S4:** Rider calls `POST /assignments` (dispatcher-only) → 403 Forbidden.
+* **S5:** Retailer tries to view another retailer’s deliveries → filtered by `retailerId`; others not visible.
+* **S6:** Rider tries to update a delivery not assigned to them → 403.
+
+### 3.3 API Authorization & Input Validation
+All endpoints validate:
+1. User is authenticated.
+2. User has the right role.
+3. Input matches schema (e.g., phone format, required fields, allowed status values).
+
+#### Tests:
+* **S7:** Send malformed payload (e.g., missing `customerPhone`) to create delivery → 400 with validation error.
+* **S8:** Send invalid status transition (e.g., OPEN → DELIVERED) → 400/409, no state change.
+* **S9:** Tamper with JWT role claim (if possible) → server rejects or signature verification fails.
+
+### 3.4 Access Control & Data Protection
+* **Row-level security:**
+  * Retailers only see their own deliveries.
+  * Riders only see their own assignments.
+* Sensitive fields (customer phone, address) not exposed to users who don’t need them.
+
+#### Tests:
+* **S10:** Rider API response inspected → only their assignments returned; no other riders’ data.
+* **S11:** Dispatcher views delivery list → customer phone/address visible (as needed); but riders from other retailers not visible if multi-retailer.
+* **S12:** Direct object reference test: Rider changes `deliveryId` in request to another delivery ID → server checks ownership and rejects if not theirs.
+
+### 3.5 Basic Hardening Checklist
+* HTTPS enforced in production.
+* CORS configured to allow only your frontend origin.
+* Rate limiting on auth and critical endpoints (optional but good to mention).
+* No secrets (DB passwords, JWT secrets) in frontend code or public repo.
+
+---
 
