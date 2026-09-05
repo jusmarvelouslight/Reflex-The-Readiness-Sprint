@@ -109,8 +109,6 @@ function Dashboard() {
   const [selectedRider, setSelectedRider] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
-  const token = localStorage.getItem("token");
-
     useEffect(() => {
     const socket = io("http://localhost:5000");
 
