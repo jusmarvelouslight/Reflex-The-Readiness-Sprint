@@ -287,6 +287,7 @@ export async function updateDeliveryStatus(
   // Notify the rider and the retailer/dispatcher watching this delivery
   io.to(riderId).emit("delivery:updated", updatedDelivery);
   io.to(updatedDelivery.retailerId).emit("delivery:updated", updatedDelivery);
+  io.emit("delivery:updated", updatedDelivery);
 
   return updatedDelivery;
 }

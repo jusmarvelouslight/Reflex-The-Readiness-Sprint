@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { io } from "socket.io-client";
 import { assignRider as assignRiderApi } from "../api/deliveriesApi";
 const metrics = [
   {
@@ -109,6 +110,33 @@ function Dashboard() {
   const [isSaving, setIsSaving] = useState(false);
 
   const token = localStorage.getItem("token");
+
+    useEffect(() => {
+    const socket = io("http://localhost:5000");
+
+    socket.on("connect", () => {
+      console.log("Control Room socket connected:", socket.id);
+    });
+
+    socket.on("delivery:updated", (updatedDelivery) => {
+      console.log("Real-time delivery update:", updatedDelivery);
+
+      setSelectedDelivery((currentDelivery) => {
+        if (currentDelivery.id !== updatedDelivery.id) {
+          return currentDelivery;
+        }
+
+        return {
+          ...currentDelivery,
+          status: updatedDelivery.status,
+        };
+      });
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
 
   const assignRider = async () => {
   if (!selectedRider || !selectedDelivery) return;
