@@ -4,6 +4,6 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   plugins: [react()],
   preview: {
-    allowedHosts: ["https://reflex-control-room01.onrender.com"],
+    allowedHosts: ["reflex-control-room01.onrender.com"],
   },
 });
