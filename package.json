@@ -1,1 +1,17 @@
-"build": "cd artifacts/reflex-control-room && npm install --include=dev && npm run build"
+{
+  "name": "reflex-control-room",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Reflex Control Room Render deployment wrapper",
+  "main": "server.js",
+  "scripts": {
+    "build": "cd artifacts/reflex-control-room && npm install --include=dev && npm run build",
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}
