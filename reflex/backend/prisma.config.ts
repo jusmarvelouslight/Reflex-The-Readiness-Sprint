@@ -1,12 +1,30 @@
-import dotenv from "dotenv";
-dotenv.config();
+import "dotenv/config";
 
 import { defineConfig } from "@prisma/config";
 
-// Append connection parameters to prevent transaction limits
-const migrationUrl = process.env.DATABASE_URL 
-  ? `${process.env.DATABASE_URL}?connection_limit=1&socket_timeout=30`
-  : undefined;
+const databaseUrl =
+  process.env.DATABASE_URL;
+
+let migrationUrl: string | undefined;
+
+if (databaseUrl) {
+  const url = new URL(
+    databaseUrl
+  );
+
+  url.searchParams.set(
+    "connection_limit",
+    "1"
+  );
+
+  url.searchParams.set(
+    "socket_timeout",
+    "30"
+  );
+
+  migrationUrl =
+    url.toString();
+}
 
 export default defineConfig({
   datasource: {
