@@ -1,29 +1,77 @@
-import express from 'express'; 
-import cors from 'cors'; 
-import helmet from 'helmet'; 
+import express from "express";
+import cors from "cors";
+import helmet from "helmet";
 
-import healthRoutes from './routes/health.routes.js'; 
-import authRoutes from './routes/auth.routes.js'; 
+import healthRoutes from "./routes/health.routes.js";
+import authRoutes from "./routes/auth.routes.js";
 import deliveryRoutes from "./routes/delivery.routes.js";
 
-import { notFoundHandler } from './middleware/not-found.middleware.js'; 
-import { errorHandler } from './middleware/error.middleware.js'; 
+import { notFoundHandler } from "./middleware/not-found.middleware.js";
+import { errorHandler } from "./middleware/error.middleware.js";
 
-const app = express(); 
+const app = express();
 
-// 1. Global Pre-routing Middleware
-app.use(helmet()); 
-app.use( 
-cors({ origin: "http://localhost:5177" })); 
-app.use(express.json()); // <--- MOVED HERE: Now runs before all routes
+const allowedOrigins = (
+  process.env.FRONTEND_URL || ""
+)
+  .split(",")
+  .map((value) => value.trim())
+  .filter(Boolean);
 
-// 2. Feature Routes
-app.use("/api/v1/deliveries", deliveryRoutes);
-app.use('/api/v1/health', healthRoutes); 
-app.use('/api/v1/auth', authRoutes);
+app.use(helmet());
 
-// 3. Post-routing Error Handlers
-app.use(notFoundHandler); 
-app.use(errorHandler); 
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      if (
+        allowedOrigins.length === 0 ||
+        allowedOrigins.includes(origin)
+      ) {
+        return callback(null, true);
+      }
+
+      return callback(
+        new Error(
+          "Origin not allowed by Reflex CORS policy."
+        )
+      );
+    },
+    credentials: true,
+  })
+);
+
+app.use(express.json());
+
+app.get("/health", (_req, res) => {
+  res.status(200).json({
+    success: true,
+    data: {
+      status: "ok",
+      service: "reflex-backend",
+    },
+  });
+});
+
+app.use(
+  "/api/v1/deliveries",
+  deliveryRoutes
+);
+
+app.use(
+  "/api/v1/health",
+  healthRoutes
+);
+
+app.use(
+  "/api/v1/auth",
+  authRoutes
+);
+
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 export default app;
