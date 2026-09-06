@@ -1,0 +1,23 @@
+services:
+  # Web Service / API Server
+  - type: web
+    name: reflex-control-room-api
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+
+  # Frontend Static Site (if deploying Vite build separately on Render)
+  - type: web
+    name: reflex-control-room-frontend
+    env: static
+    buildCommand: cd artifacts/reflex-control-room && npm install && npm run build
+    staticPublishPath: artifacts/reflex-control-room/dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
