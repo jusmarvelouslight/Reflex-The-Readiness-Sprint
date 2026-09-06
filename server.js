@@ -1,24 +1,29 @@
-const express = require('express');
-const path = require('path');
+const express = require("express");
+const path = require("path");
 
 const app = express();
+
 const PORT = process.env.PORT || 10000;
 
-// Middleware
+const frontendDist = path.join(
+  __dirname,
+  "artifacts",
+  "reflex-control-room",
+  "dist"
+);
+
+app.disable("x-powered-by");
+
 app.use(express.json());
 
-// Serve static assets from the compiled Vite React frontend
-const viteBuildPath = path.join(__dirname, 'artifacts/reflex-control-room/dist');
-app.use(express.static(viteBuildPath));
+app.use(express.static(frontendDist, {
+  index: false
+}));
 
-// Backend API routes (Import your routes here if applicable)
-// e.g., app.use('/api', backendProxyRouter);
-
-// Fallback route: serve index.html for React Router single-page app routes
-app.get('*', (req, res) => {
-  res.sendFile(path.join(viteBuildPath, 'index.html'));
+app.get("*", (_req, res) => {
+  res.sendFile(path.join(frontendDist, "index.html"));
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Reflex Control Room running on port ${PORT}`);
 });
