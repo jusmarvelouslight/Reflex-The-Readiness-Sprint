@@ -8,7 +8,8 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "typecheck": "tsc --noEmit",
-    "postinstall": "prisma skills sync || exit 0"
+    "postinstall": "prisma skills sync || exit 0",
+    "render-postdeploy": "npx prisma migrate deploy && npx prisma db seed"
   },
   "keywords": [],
   "author": "",
@@ -36,5 +37,8 @@
     "prisma": "^7.10.0",
     "tsx": "^4.23.12",
     "typescript": "^7.0.2"
+  },
+  "prisma": {
+    "seed": "tsx src/config/database.ts"
   }
 }
