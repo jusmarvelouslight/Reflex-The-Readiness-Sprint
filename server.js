@@ -2,10 +2,25 @@ const express = require("express");
 const path = require("path");
 
 const app = express();
+
 const PORT = process.env.PORT || 10000;
-const BACKEND_API_URL = (process.env.BACKEND_API_URL || "https://reflex-backend-ru4q.onrender.com").replace(/\/+$/, "");
-const frontendDist = path.join(__dirname, "artifacts", "reflex-control-room", "dist");
-const REQUEST_TIMEOUT_MS = Number(process.env.API_REQUEST_TIMEOUT_MS || 15000);
+
+const BACKEND_API_URL = (
+  process.env.BACKEND_API_URL ||
+  "https://reflex-backend-ru4q.onrender.com"
+).replace(/\/+$/, "");
+
+const frontendDist = path.join(
+  __dirname,
+  "artifacts",
+  "reflex-control-room",
+  "dist"
+);
+
+const REQUEST_TIMEOUT_MS = Number(
+  process.env.API_REQUEST_TIMEOUT_MS || 15000
+);
+
 const DEFAULT_DISPATCHER_EMAIL = "dispatcher@reflex.test";
 const DEFAULT_DISPATCHER_PASSWORD = "ReflexDemo123";
 
@@ -13,53 +28,107 @@ let dispatcherToken = process.env.CONTROL_ROOM_TOKEN || null;
 let dispatcherLoginPromise = null;
 
 function timeoutSignal(ms) {
-  return AbortSignal.timeout ? AbortSignal.timeout(ms) : (() => {
-    const controller = new AbortController();
-    setTimeout(() => controller.abort(), ms).unref?.();
-    return controller.signal;
-  })();
+  if (AbortSignal.timeout) {
+    return AbortSignal.timeout(ms);
+  }
+
+  const controller = new AbortController();
+
+  setTimeout(() => {
+    controller.abort();
+  }, ms).unref?.();
+
+  return controller.signal;
 }
 
 async function login(email, password) {
   let response;
+
   try {
-    response = await fetch(`${BACKEND_API_URL}/api/v1/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "application/json" },
-      body: JSON.stringify({ email, password }),
-      signal: timeoutSignal(REQUEST_TIMEOUT_MS),
-    });
+    response = await fetch(
+      `${BACKEND_API_URL}/api/v1/auth/login`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+        signal: timeoutSignal(REQUEST_TIMEOUT_MS),
+      }
+    );
   } catch (error) {
-    if (error?.name === "TimeoutError" || error?.name === "AbortError") {
-      throw new Error("The Reflex backend did not respond in time. Please try again.");
+    if (
+      error?.name === "TimeoutError" ||
+      error?.name === "AbortError"
+    ) {
+      throw new Error(
+        "The Reflex backend did not respond in time. Please try again."
+      );
     }
-    throw new Error("The Reflex backend could not be reached. Please try again.");
+
+    throw new Error(
+      "The Reflex backend could not be reached. Please try again."
+    );
   }
 
   const body = await response.json().catch(() => null);
-  if (!response.ok || !body?.success || !body.data?.token) {
-    throw new Error(body?.error?.message || `Authentication failed (${response.status})`);
+
+  if (
+    !response.ok ||
+    !body?.success ||
+    !body.data?.token
+  ) {
+    throw new Error(
+      body?.error?.message ||
+        `Authentication failed (${response.status})`
+    );
   }
+
   return body.data;
 }
 
 async function getDispatcherToken(forceRefresh = false) {
-  if (forceRefresh) dispatcherToken = null;
-  if (dispatcherToken) return dispatcherToken;
-  if (dispatcherLoginPromise) return dispatcherLoginPromise;
+  if (forceRefresh) {
+    dispatcherToken = null;
+  }
 
-  // Keep the Control Room public while allowing its protected operational
-  // actions to authenticate server-side without exposing credentials to the browser.
-  const email = process.env.DEMO_DISPATCHER_EMAIL || DEFAULT_DISPATCHER_EMAIL;
-  const password = process.env.DEMO_DISPATCHER_PASSWORD || DEFAULT_DISPATCHER_PASSWORD;
+  if (dispatcherToken) {
+    return dispatcherToken;
+  }
+
+  if (dispatcherLoginPromise) {
+    return dispatcherLoginPromise;
+  }
+
+  // Keep the Control Room public while allowing its operational
+  // requests to authenticate server-side.
+  const email =
+    process.env.DEMO_DISPATCHER_EMAIL ||
+    DEFAULT_DISPATCHER_EMAIL;
+
+  const password =
+    process.env.DEMO_DISPATCHER_PASSWORD ||
+    DEFAULT_DISPATCHER_PASSWORD;
 
   dispatcherLoginPromise = login(email, password)
     .then((data) => {
-      if (data.user?.role !== "DISPATCHER") throw new Error("Configured dispatcher account is not a DISPATCHER");
+      if (data.user?.role !== "DISPATCHER") {
+        throw new Error(
+          "Configured dispatcher account is not a DISPATCHER"
+        );
+      }
+
       dispatcherToken = data.token;
+
       return dispatcherToken;
     })
-    .finally(() => { dispatcherLoginPromise = null; });
+    .finally(() => {
+      dispatcherLoginPromise = null;
+    });
 
   return dispatcherLoginPromise;
 }
@@ -68,44 +137,101 @@ app.disable("x-powered-by");
 app.use(express.json());
 
 app.use("/api/v1", async (req, res) => {
-  const relativePath = req.originalUrl.slice("/api/v1".length);
-  const targetUrl = `${BACKEND_API_URL}/api/v1${relativePath}`;
-  const browserAuthorization = req.headers.authorization || null;
-  const headers = { "Content-Type": "application/json", Accept: "application/json" };
-  const isAuthRoute = req.path.startsWith("/auth/");
-  const isOverviewRead = ["GET", "HEAD"].includes(req.method) &&
-    (req.path === "/riders" || req.path === "/deliveries" || req.path.startsWith("/deliveries/"));
+  const relativePath = req.originalUrl.slice(
+    "/api/v1".length
+  );
 
-  // Browser login/register requests are forwarded untouched. Operational requests
-  // use the browser token when present, otherwise the server-side dispatcher token.
+  const targetUrl =
+    `${BACKEND_API_URL}/api/v1${relativePath}`;
+
+  const browserAuthorization =
+    req.headers.authorization || null;
+
+  // Critical distinction:
+  // true = request belongs to an authenticated portal user.
+  // false = public Control Room request that may use the
+  // server-side dispatcher credential.
+  const usingBrowserAuthorization =
+    Boolean(browserAuthorization);
+
+  const headers = {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  };
+
+  const isAuthRoute = req.path.startsWith("/auth/");
+
+  const isOverviewRead =
+    ["GET", "HEAD"].includes(req.method) &&
+    (
+      req.path === "/riders" ||
+      req.path === "/deliveries" ||
+      req.path.startsWith("/deliveries/")
+    );
+
+  // Auth/login requests are always forwarded untouched.
+  //
+  // Authenticated portal requests use ONLY the token supplied
+  // by that portal.
+  //
+  // Public Control Room operational requests use the
+  // server-side dispatcher token.
   if (!isAuthRoute && browserAuthorization) {
     headers.Authorization = browserAuthorization;
   } else if (!isAuthRoute) {
     try {
       const token = await getDispatcherToken();
-      if (token) headers.Authorization = `Bearer ${token}`;
+
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
     } catch (error) {
       if (!isOverviewRead) {
-        console.error("[control-room] dispatcher authentication failed:", error);
+        console.error(
+          "[control-room] dispatcher authentication failed:",
+          error
+        );
+
         return res.status(503).json({
           success: false,
           error: {
             code: "DISPATCHER_AUTH_UNAVAILABLE",
-            message: error instanceof Error ? error.message : "Control Room authentication is unavailable.",
+            message:
+              error instanceof Error
+                ? error.message
+                : "Control Room authentication is unavailable.",
           },
         });
       }
-      console.warn("[control-room] dispatcher authentication unavailable for overview read:", error);
+
+      console.warn(
+        "[control-room] dispatcher authentication unavailable for overview read:",
+        error
+      );
     }
   }
 
   let body = req.body;
-  if (req.method === "POST" && req.path === "/deliveries" && body && body.address && Array.isArray(body.items)) {
+
+  // Compatibility mapping for customer/order payloads.
+  if (
+    req.method === "POST" &&
+    req.path === "/deliveries" &&
+    body &&
+    body.address &&
+    Array.isArray(body.items)
+  ) {
     body = {
       customerName: body.customerName,
-      customerPhone: body.customerPhone || "+254700000000",
+      customerPhone:
+        body.customerPhone || "+254700000000",
       deliveryAddress: body.address,
-      itemDescription: body.items.map((item) => `${item.name} (x${item.quantity || 1})`).join(", "),
+      itemDescription: body.items
+        .map(
+          (item) =>
+            `${item.name} (x${item.quantity || 1})`
+        )
+        .join(", "),
     };
   }
 
@@ -114,15 +240,25 @@ app.use("/api/v1", async (req, res) => {
       return await fetch(targetUrl, {
         method: req.method,
         headers: requestHeaders,
-        body: ["GET", "HEAD"].includes(req.method) ? undefined : JSON.stringify(body ?? {}),
+        body: ["GET", "HEAD"].includes(req.method)
+          ? undefined
+          : JSON.stringify(body ?? {}),
         signal: timeoutSignal(REQUEST_TIMEOUT_MS),
       });
     } catch (error) {
-      if (error?.name === "TimeoutError" || error?.name === "AbortError") {
-        const timeoutError = new Error("The Reflex backend did not respond in time.");
+      if (
+        error?.name === "TimeoutError" ||
+        error?.name === "AbortError"
+      ) {
+        const timeoutError = new Error(
+          "The Reflex backend did not respond in time."
+        );
+
         timeoutError.code = "UPSTREAM_TIMEOUT";
+
         throw timeoutError;
       }
+
       throw error;
     }
   }
@@ -130,34 +266,89 @@ app.use("/api/v1", async (req, res) => {
   try {
     let response = await forward(headers);
 
-    // If a browser token is stale, retry protected routes with a fresh dispatcher token.
-    if (response.status === 401 && !isAuthRoute) {
+    /*
+     * CRITICAL AUTHENTICATION RULE
+     *
+     * If the browser supplied a portal token and the backend
+     * returns 401, DO NOT replace that token with the
+     * dispatcher token.
+     *
+     * This ensures:
+     * - expired rider sessions stay rider sessions
+     * - expired dispatcher sessions stay dispatcher sessions
+     * - users cannot accidentally receive another role's data
+     *
+     * Only server-authenticated Control Room requests are
+     * allowed to refresh the dispatcher token.
+     */
+    if (
+      response.status === 401 &&
+      !isAuthRoute &&
+      !usingBrowserAuthorization
+    ) {
       try {
-        const freshDispatcherToken = await getDispatcherToken(true);
+        const freshDispatcherToken =
+          await getDispatcherToken(true);
+
         if (freshDispatcherToken) {
-          response = await forward({ ...headers, Authorization: `Bearer ${freshDispatcherToken}` });
+          response = await forward({
+            ...headers,
+            Authorization:
+              `Bearer ${freshDispatcherToken}`,
+          });
         }
       } catch (error) {
-        console.error("[control-room] dispatcher retry failed:", error);
+        console.error(
+          "[control-room] dispatcher retry failed:",
+          error
+        );
       }
     }
 
-    const contentType = response.headers.get("content-type");
-    if (contentType) res.setHeader("content-type", contentType);
+    const contentType =
+      response.headers.get("content-type");
+
+    if (contentType) {
+      res.setHeader("content-type", contentType);
+    }
+
     const text = await response.text();
 
     if (response.status >= 500) {
-      console.error(`[control-room] upstream ${response.status} ${req.method} ${req.path}: ${text.slice(0, 500)}`);
+      console.error(
+        `[control-room] upstream ${response.status} ${req.method} ${req.path}: ${text.slice(
+          0,
+          500
+        )}`
+      );
     }
-    if (response.status === 401) dispatcherToken = null;
+
+    // Only invalidate the server-side dispatcher token.
+    // Never treat a rider/dispatcher browser token as the
+    // server-side Control Room token.
+    if (
+      response.status === 401 &&
+      !usingBrowserAuthorization
+    ) {
+      dispatcherToken = null;
+    }
+
     return res.status(response.status).send(text);
   } catch (error) {
-    console.error("[control-room] upstream request failed:", error);
-    const isTimeout = error?.code === "UPSTREAM_TIMEOUT";
+    console.error(
+      "[control-room] upstream request failed:",
+      error
+    );
+
+    const isTimeout =
+      error?.code === "UPSTREAM_TIMEOUT";
+
     return res.status(isTimeout ? 504 : 502).json({
       success: false,
       error: {
-        code: isTimeout ? "UPSTREAM_TIMEOUT" : "UPSTREAM_UNAVAILABLE",
+        code: isTimeout
+          ? "UPSTREAM_TIMEOUT"
+          : "UPSTREAM_UNAVAILABLE",
         message: isTimeout
           ? "The Reflex backend did not respond in time. Please try again."
           : "The Reflex API is temporarily unavailable.",
@@ -166,7 +357,20 @@ app.use("/api/v1", async (req, res) => {
   }
 });
 
-app.use(express.static(frontendDist, { index: false }));
-app.get("*", (_req, res) => res.sendFile(path.join(frontendDist, "index.html")));
+app.use(
+  express.static(frontendDist, {
+    index: false,
+  })
+);
 
-app.listen(PORT, "0.0.0.0", () => console.log(`Reflex Control Room running on port ${PORT}`));
+app.get("*", (_req, res) =>
+  res.sendFile(
+    path.join(frontendDist, "index.html")
+  )
+);
+
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(
+    `Reflex Control Room running on port ${PORT}`
+  );
+});
