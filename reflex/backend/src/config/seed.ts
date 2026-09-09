@@ -2,11 +2,11 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import { Role, DeliveryStatus } from '@prisma/client';
-import { prisma } from './database.js'; 
+import { prisma } from './database.js';
 
 async function main() {
   console.log('Clearing old data in strict relation order...');
-  
+
   // 1. Delete history logs first (depends on Deliveries)
   await prisma.deliveryStatusHistory.deleteMany({});
   console.log('✔ History records cleared.');
@@ -20,7 +20,7 @@ async function main() {
   console.log('✔ User accounts cleared.');
 
   console.log('Seeding application users (Retailers & Riders)...');
-  
+
   const retailer = await prisma.user.create({
     data: {
       name: 'Central Retailer Office',
@@ -67,23 +67,25 @@ async function main() {
   });
 
   console.log('Seeding deliveries aligned with database rules...');
-  
+
   await prisma.delivery.create({
     data: {
       id: 'RX-1048',
+      referenceCode: 'RX-1048',
       customerName: 'Amara Wanjiku',
       customerPhone: '+254700000001',
       deliveryAddress: 'Westlands',
       itemDescription: 'Standard Document Parcel',
       status: DeliveryStatus.PICKED_UP,
       retailerId: retailer.id,
-      riderId: kMwangi.id, 
+      riderId: kMwangi.id,
     },
   });
 
   await prisma.delivery.create({
     data: {
       id: 'RX-1047',
+      referenceCode: 'RX-1047',
       customerName: 'Daniel Otieno',
       customerPhone: '+254700000002',
       deliveryAddress: 'Kilimani',
@@ -97,6 +99,7 @@ async function main() {
   await prisma.delivery.create({
     data: {
       id: 'RX-1046',
+      referenceCode: 'RX-1046',
       customerName: 'Maya Shah',
       customerPhone: '+254700000003',
       deliveryAddress: 'Lavington',
@@ -110,19 +113,21 @@ async function main() {
   await prisma.delivery.create({
     data: {
       id: 'RX-1045',
+      referenceCode: 'RX-1045',
       customerName: 'Brian Kamau',
       customerPhone: '+254700000004',
       deliveryAddress: 'Karen',
       itemDescription: 'E-commerce Apparel',
       status: DeliveryStatus.PENDING,
       retailerId: retailer.id,
-      riderId: null, 
+      riderId: null,
     },
   });
 
   await prisma.delivery.create({
     data: {
       id: 'RX-1044',
+      referenceCode: 'RX-1044',
       customerName: 'Aisha Hassan',
       customerPhone: '+254700000005',
       deliveryAddress: 'Parklands',
