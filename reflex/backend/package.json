@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "prisma generate && tsc",
-    "start": "prisma migrate deploy && node dist/server.js",
+    "start": "prisma migrate resolve --applied 20260828050855_init && prisma migrate deploy && node dist/server.js",
     "typecheck": "tsc --noEmit",
     "postinstall": "prisma skills sync || exit 0",
     "render-postdeploy": "npx prisma migrate deploy && npx prisma db seed"
