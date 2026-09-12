@@ -22,7 +22,7 @@ const REQUEST_TIMEOUT_MS = Number(
 );
 
 const DEFAULT_DISPATCHER_EMAIL = "dispatcher@reflex.test";
-const DEFAULT_DISPATCHER_PASSWORD = "ReflexDemo123";
+const DEFAULT_DISPATCHER_PASSWORD = "Reflex123!";
 
 let dispatcherToken = process.env.CONTROL_ROOM_TOKEN || null;
 let dispatcherLoginPromise = null;
