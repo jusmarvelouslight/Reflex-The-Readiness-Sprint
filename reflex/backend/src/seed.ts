@@ -5,8 +5,8 @@ import { prisma } from "./config/database.js";
 // Safe defaults for the Reflex operational/demo environment.
 // Environment variables override these values when configured.
 const DEFAULT_DISPATCHER_EMAIL = "dispatcher@reflex.test";
-const DEFAULT_DISPATCHER_PASSWORD = "ReflexDemo123";
-const DEFAULT_RIDER_EMAIL = "kevin.mwangi@reflex.test";
+const DEFAULT_DISPATCHER_PASSWORD = "Reflex123!";
+const DEFAULT_RIDER_EMAIL = "rider@reflex.test";
 const DEFAULT_RIDER_PASSWORD = "Rider123!";
 
 export async function seedDemoData() {
@@ -81,9 +81,6 @@ export async function seedDemoData() {
         role: "RIDER",
         passwordHash: riderPasswordHash,
         serviceArea: definition.area,
-        // IMPORTANT:
-        // Existing rider availability is deliberately NOT updated.
-        // Availability is live operational state and must survive restarts.
       },
       create: {
         name: definition.name,
@@ -97,16 +94,9 @@ export async function seedDemoData() {
     });
 
     riders.set(definition.name, rider);
-
-    // Keep TypeScript/runtime intent explicit: existing riders retain state.
     void existingRider;
   }
 
-  // Older deployments used @reflex.com demo rider accounts. They were created
-  // by the old destructive seed and have the same names as the canonical
-  // @reflex.test riders above. Re-point their deliveries/history to the
-  // canonical users, then remove the legacy accounts so the Rider Register
-  // cannot show duplicate people.
   const legacyRiderEmails = [
     "kevin.mwangi@reflex.com",
     "brian.kamau@reflex.com",
@@ -158,8 +148,6 @@ export async function seedDemoData() {
     });
   }
 
-  // The old seed also created a second retailer account. Re-point any
-  // deliveries that still reference it before removing that legacy account.
   const legacyRetailer = await prisma.user.findUnique({
     where: { email: "retail@reflex.com" },
     select: { id: true },
@@ -225,10 +213,6 @@ export async function seedDemoData() {
     let delivery;
 
     if (existingDelivery) {
-      // IMPORTANT:
-      // Existing operational state is NEVER reset by the seed.
-      // This preserves assignments, pickups, deliveries and cancellations
-      // across backend/Render restarts.
       delivery = await prisma.delivery.update({
         where: { id: existingDelivery.id },
         data: {
@@ -237,12 +221,9 @@ export async function seedDemoData() {
           deliveryAddress: definition.deliveryAddress,
           itemDescription: definition.itemDescription,
           retailerId: retailer.id,
-          // Keep the live rider assignment if one already exists. Legacy
-          // @reflex.com assignments were normalized above.
         },
       });
     } else {
-      // Only brand-new demo records receive their initial demo state.
       delivery = await prisma.delivery.create({
         data: {
           referenceCode: definition.referenceCode,
