@@ -102,6 +102,42 @@ export async function seedDemoData() {
     void existingRider;
   }
 
+  // Older deployments used @reflex.com demo rider accounts. They were created
+  // by the old destructive seed and have the same names as the canonical
+  // @reflex.test riders above. Re-point their deliveries/history to the
+  // canonical users, then remove the legacy accounts so the Rider Register
+  // cannot show duplicate people.
+  const legacyRiderEmails = [
+    "kevin.mwangi@reflex.com",
+    "brian.kamau@reflex.com",
+    "faith.njeri@reflex.com",
+    "samuel.kiptoo@reflex.com",
+  ];
+
+  for (const legacyEmail of legacyRiderEmails) {
+    const legacyRider = await prisma.user.findUnique({
+      where: { email: legacyEmail },
+      select: { id: true, name: true },
+    });
+
+    if (!legacyRider) continue;
+
+    const canonicalRider = riders.get(legacyRider.name);
+    if (!canonicalRider || canonicalRider.id === legacyRider.id) continue;
+
+    await prisma.delivery.updateMany({
+      where: { riderId: legacyRider.id },
+      data: { riderId: canonicalRider.id },
+    });
+
+    await prisma.deliveryStatusHistory.updateMany({
+      where: { changedById: legacyRider.id },
+      data: { changedById: canonicalRider.id },
+    });
+
+    await prisma.user.delete({ where: { id: legacyRider.id } });
+  }
+
   let retailer = await prisma.user.findUnique({
     where: { email: "retailer@reflex.test" },
     select: { id: true },
@@ -120,6 +156,21 @@ export async function seedDemoData() {
       },
       select: { id: true },
     });
+  }
+
+  // The old seed also created a second retailer account. Re-point any
+  // deliveries that still reference it before removing that legacy account.
+  const legacyRetailer = await prisma.user.findUnique({
+    where: { email: "retail@reflex.com" },
+    select: { id: true },
+  });
+
+  if (legacyRetailer && legacyRetailer.id !== retailer.id) {
+    await prisma.delivery.updateMany({
+      where: { retailerId: legacyRetailer.id },
+      data: { retailerId: retailer.id },
+    });
+    await prisma.user.delete({ where: { id: legacyRetailer.id } });
   }
 
   const deliveryDefinitions = [
@@ -152,7 +203,7 @@ export async function seedDemoData() {
     },
     {
       referenceCode: "RX-1044",
-      customerName: "Customer RX-1044",
+      customerName: "Aisha Hassan",
       customerPhone: "+254700000004",
       deliveryAddress: "Parklands, Nairobi",
       itemDescription: "Failed delivery",
@@ -186,6 +237,8 @@ export async function seedDemoData() {
           deliveryAddress: definition.deliveryAddress,
           itemDescription: definition.itemDescription,
           retailerId: retailer.id,
+          // Keep the live rider assignment if one already exists. Legacy
+          // @reflex.com assignments were normalized above.
         },
       });
     } else {
