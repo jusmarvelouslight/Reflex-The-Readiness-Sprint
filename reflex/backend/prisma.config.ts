@@ -13,6 +13,6 @@ export default defineConfig({
     url: migrationUrl,
   },
   migrations: {
-    seed: "tsx src/config/seed.ts",
+    seed: "tsx src/seed.ts",
   },
 });
