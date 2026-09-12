@@ -39,6 +39,6 @@
     "typescript": "^7.0.2"
   },
   "prisma": {
-    "seed": "tsx src/config/database.ts"
+    "seed": "tsx src/seed.ts"
   }
 }
